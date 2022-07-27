@@ -16,7 +16,8 @@ interface player {
   id: string,
   name: string,
   ready: boolean,
-  progress: number
+  progress: number,
+  finishedPlace: number
 }
 
 const Home: NextPage<props> = (props) => {
@@ -56,6 +57,10 @@ const Home: NextPage<props> = (props) => {
     setPlayers(players);
   })
 
+  socket.on('gameFinished', (players: player[]) => {
+    setPlayers(players);
+  })
+
   return (
     <Box m={2} >
       <Head>
@@ -67,13 +72,13 @@ const Home: NextPage<props> = (props) => {
           <Typography variant='h3'>{Players.length} players in {SubmittedRoomName} room</Typography>
 
           {Players.map((player: player) => {
-            return <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name}</span></Typography>
+            return <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name} {player.finishedPlace>0 && <span>{player.finishedPlace}</span>}</span></Typography>
           })
           }
         </Box>
         :
         <Box mb={2} sx={{ width: '100%'}}>
-          <Typography textAlign={'right'} variant="h4">Gotta Type Fast</Typography>
+          <Typography textAlign={'right'} variant="h4">Gotta Type Fast [WIP]</Typography>
           <form style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }} onSubmit={joinRoom}>
             <Box mx={1}>
               <FormControl required>

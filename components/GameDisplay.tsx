@@ -38,18 +38,22 @@ const GameDisplay = (props: props): JSX.Element => {
     }
 
     useEffect(() => {
-        let allPlayerReady = true;
-        props.players.forEach(player => {
-            if (!player.ready) {
-                allPlayerReady = false;
-                return;
+        if (props.players.length > 0) {
+
+            let allPlayerReady = true;
+            props.players.forEach(player => {
+                if (!player.ready) {
+                    allPlayerReady = false;
+                    return;
+                }
+            });
+            console.log(allPlayerReady)
+            if (allPlayerReady) {
+                setMultiplayerReady(true);
             }
-        });
-        if (allPlayerReady) {
-            setMultiplayerReady(true);
-        }
-        else {
-            setMultiplayerReady(false);
+            else {
+                setMultiplayerReady(false);
+            }
         }
     }, [props.players]);
 
@@ -58,6 +62,7 @@ const GameDisplay = (props: props): JSX.Element => {
             setIsGameStarted(true);
         }
     }, [multiplayerReady, props.players.length]);
+
     useEffect(() => {
         setData(props.data);
     }, [props.data]);
@@ -65,7 +70,7 @@ const GameDisplay = (props: props): JSX.Element => {
     useEffect(() => {
         if (props.players.length > 0)
             updateProgress();
-    }, [currentWordCount,props.players.length, updateProgress])
+    }, [currentWordCount])
 
     useEffect(() => {
         if (countDownFinished && isGameStarted && timer > 0) {
@@ -107,7 +112,7 @@ const GameDisplay = (props: props): JSX.Element => {
             }, 1000);
             return () => clearInterval(interval);
         }
-    }, [isGameStarted, data]);
+    }, [isGameStarted]);
 
     useEffect(() => {
         if (countDown == 0 && isGameStarted && countDownFinished) {
