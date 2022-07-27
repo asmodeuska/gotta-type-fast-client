@@ -74,9 +74,7 @@ const Home: NextPage<props> = (props) => {
 
           {players.map((player: player) => {
             return (
-              <Box>
-                <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name} {player.finishedPlace > 0 && <span>{player.finishedPlace}</span>}</span></Typography>
-              </Box>
+              <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name} {player.finishedPlace > 0 && <span>{player.finishedPlace}</span>}</span></Typography>
             )
           })
           }
