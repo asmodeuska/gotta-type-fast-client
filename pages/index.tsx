@@ -22,21 +22,21 @@ interface player {
 
 const Home: NextPage<props> = (props) => {
 
-  const [Username, setUsername] = useState('' as string);
-  const [SubmittedRoomName, setSubmitedRoomName] = useState('' as string);
-  const [Roomname, setRoomname] = useState('' as string);
-  const [Players, setPlayers] = useState([] as player[]);
+  const [playerName, setPlayerName] = useState('' as string);
+  const [submittedRoomName, setSubmitedRoomName] = useState('' as string);
+  const [roomName, setRoomName] = useState('' as string);
+  const [players, setPlayers] = useState([] as player[]);
   const [data, setData] = useState(props.data);
 
 
   const joinRoom = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    socket.emit('joinRoom', { userName: Username, roomName: Roomname, text: data });
+    socket.emit('joinRoom', { userName: playerName, roomName: roomName, text: data });
   }
 
   socket.on('joinRoom', (text: string, players: player[]) => {
     setPlayers(players);
-    setSubmitedRoomName(Roomname);
+    setSubmitedRoomName(roomName);
     setData(text);
   })
 
@@ -67,27 +67,32 @@ const Home: NextPage<props> = (props) => {
         <title>Gotta Type Fast</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {SubmittedRoomName !== '' ?
+      {submittedRoomName !== '' ?
         <Box textAlign="right">
-          <Typography variant='h3'>{Players.length} players in {SubmittedRoomName} room</Typography>
+          <Typography variant="h3" textAlign="right">Welcome {playerName}</Typography>
+          <Typography variant='h3'>{players.length} players in {submittedRoomName} room</Typography>
 
-          {Players.map((player: player) => {
-            return <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name} {player.finishedPlace>0 && <span>{player.finishedPlace}</span>}</span></Typography>
+          {players.map((player: player) => {
+            return (
+              <Box>
+                <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name} {player.finishedPlace > 0 && <span>{player.finishedPlace}</span>}</span></Typography>
+              </Box>
+            )
           })
           }
         </Box>
         :
-        <Box mb={2} sx={{ width: '100%'}}>
+        <Box mb={2} sx={{ width: '100%' }}>
           <Typography textAlign={'right'} variant="h4">Gotta Type Fast [WIP]</Typography>
           <form style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }} onSubmit={joinRoom}>
             <Box mx={1}>
               <FormControl required>
-                <TextField required variant='standard' label="Username" value={Username} onChange={(e) => setUsername(e.target.value)} />
+                <TextField required variant='standard' label="Username" value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
               </FormControl>
             </Box>
             <Box mx={1}>
               <FormControl required>
-                <TextField required variant='standard' label="Room name" value={Roomname} onChange={(e) => setRoomname(e.target.value)} />
+                <TextField required variant='standard' label="Room name" value={roomName} onChange={(e) => setRoomName(e.target.value)} />
               </FormControl>
             </Box>
             <FormControl>
@@ -97,7 +102,7 @@ const Home: NextPage<props> = (props) => {
         </Box>
       }
 
-      <GameDisplay roomName={SubmittedRoomName} players={Players} data={data.split(/\s+/)} />
+      <GameDisplay roomName={submittedRoomName} players={players} data={data.split(/\s+/)} />
     </Box>
   )
 }

@@ -91,35 +91,18 @@ const GameDisplay = (props: props): JSX.Element => {
 
 
     useEffect(() => {
-        if (isGameStarted) {
+
+        if (isGameStarted){
             setCurrentWordCount(0);
             setCurrentWord(data[0] + " ");
-            setDisplayToggle("display-flex");
             setTimer(0);
             setWPM(0);
             setIsGameFinished(false);
-            let cd = 3;
-            setCountDown(cd);
-            const interval = setInterval(() => {
-                if (cd > 0) {
-                    setCountDown(--cd);
-                }
-                if (cd === 0) {
-                    setCountDownFinished(true);
-                    return;
-                }
-
-            }, 1000);
-            return () => clearInterval(interval);
-        }
-    }, [isGameStarted]);
-
-    useEffect(() => {
-        if (countDown == 0 && isGameStarted && countDownFinished) {
-            setDisplayToggle("display-none");
+            setCountDownFinished(false);
             let time = 0;
-            const interval = setInterval(() => {
+            let interval = setInterval(() => {
                 if (isGameFinished) {
+                    clearInterval(interval);
                     return;
                 }
                 else
@@ -127,7 +110,10 @@ const GameDisplay = (props: props): JSX.Element => {
             }, 100);
             return () => clearInterval(interval);
         }
-    }, [countDown, isGameFinished, isGameStarted, countDownFinished]);
+        
+    }, [isGameStarted]);
+
+
 
     const startGame = async () => {
         if (!isGameStarted && !isGameFinished && props.players.length > 0) {
@@ -140,7 +126,6 @@ const GameDisplay = (props: props): JSX.Element => {
             if (props.players.length > 0) {
                 socket.emit('gameFinished', { roomName: props.roomName })
             }
-            generateNewText();
             setIsGameStarted(true);
         }
     }
@@ -149,6 +134,9 @@ const GameDisplay = (props: props): JSX.Element => {
         const res = await fetch('http://metaphorpsum.com/paragraphs/1/5');
         const d = await res.text();
         setData(d.split(/\s+/));
+        setIsGameStarted(false);
+        setCountDownFinished(false);
+        setIsGameFinished(true);
     }
 
 
@@ -220,10 +208,9 @@ const GameDisplay = (props: props): JSX.Element => {
             <input autoComplete='off' ref={ref} disabled={!isGameStarted} className='input-center' value={typedWord} type="text" id="input" onChange={handleChange} />
             <Box my={1} textAlign={'center'}>
                 <Box mb={0.5}>
-                    <Button variant='contained' color='success' onClick={startGame}>Start</Button>
+                    <Button variant='contained' color='info' onClick={startGame}>Start</Button>
                 </Box>
-                <br />
-                {props.players.length == 0 && <Button variant='contained' color='info' onClick={generateNewText}>Generate new text</Button>}
+                {props.players.length == 0 && <Button variant='outlined' color='warning' onClick={generateNewText}>Generate new text</Button>}
             </Box>
         </Box>
     );

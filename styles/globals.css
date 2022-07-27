@@ -93,6 +93,10 @@ a {
   font-size: 25px;
 }
 
+.input-center:enabled{
+  box-shadow: 0 0 15px rgba(213, 213, 213, 0.723);
+}
+
 
 .mb-2 {
   margin-bottom: 2pt;
