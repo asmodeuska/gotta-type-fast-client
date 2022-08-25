@@ -65,7 +65,6 @@ const Home: NextPage<props> = (props) => {
     <Box m={2} >
       <Head>
         <title>Gotta Type Fast</title>
-        <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {submittedRoomName !== '' ?
@@ -108,7 +107,7 @@ const Home: NextPage<props> = (props) => {
 
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch('http://metaphorpsum.com/paragraphs/1/5');
+  const res = await fetch(process.env.NEXT_PUBLIC_SOCKET_IO +'/generate');
   const data = await res.text();
   return {
     props: {

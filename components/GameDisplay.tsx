@@ -20,8 +20,6 @@ const GameDisplay = (props: props): JSX.Element => {
 
     const [isGameStarted, setIsGameStarted] = useState(false as boolean);
     const [isGameFinished, setIsGameFinished] = useState(false as boolean);
-    const [countDownFinished, setCountDownFinished] = useState(false as boolean);
-
     const [timer, setTimer] = useState(0 as number);
     const [data, setData] = useState(props.data as string[]);
     const [countDown, setCountDown] = useState(3 as number);
@@ -73,21 +71,13 @@ const GameDisplay = (props: props): JSX.Element => {
     }, [currentWordCount])
 
     useEffect(() => {
-        if (countDownFinished && isGameStarted && timer > 0) {
+        if (isGameStarted && timer > 0) {
             setWPM(parseInt((currentWordCount / timer * 60).toFixed(0)));
         }
         else if (!isGameStarted && !isGameFinished) {
             setWPM(0);
         }
-    }, [timer, currentWordCount, isGameStarted, isGameFinished, countDownFinished]);
-
-    useEffect(() => {
-        if (countDownFinished) {
-            if (ref.current !== null) {
-                ref.current?.focus();
-            }
-        }
-    }, [countDownFinished]);
+    }, [timer, currentWordCount, isGameStarted, isGameFinished]);
 
 
     useEffect(() => {
@@ -98,7 +88,7 @@ const GameDisplay = (props: props): JSX.Element => {
             setTimer(0);
             setWPM(0);
             setIsGameFinished(false);
-            setCountDownFinished(false);
+            ref.current?.focus();
             let time = 0;
             let interval = setInterval(() => {
                 if (isGameFinished) {
@@ -131,12 +121,12 @@ const GameDisplay = (props: props): JSX.Element => {
     }
 
     async function generateNewText() {
-        const res = await fetch('http://metaphorpsum.com/paragraphs/1/5');
+        const res = await fetch(process.env.NEXT_PUBLIC_SOCKET_IO +'/generate');
         const d = await res.text();
         setData(d.split(/\s+/));
         setIsGameStarted(false);
-        setCountDownFinished(false);
-        setIsGameFinished(true);
+        setIsGameFinished(false);
+        setTypedWord('');
     }
 
 
@@ -168,7 +158,6 @@ const GameDisplay = (props: props): JSX.Element => {
                     setCurrentWordCount(currentWordCount + 1);
                     setIsGameFinished(true);
                     setIsGameStarted(false);
-                    setCountDownFinished(false);
                 }
             }
         }
