@@ -1,3 +1,3 @@
 # gotta-type-fast-client
 
-https://gotta-type-fast.herokuapp.com/
+https://gotty-type-fast-mi6h.onrender.com
