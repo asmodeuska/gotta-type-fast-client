@@ -70,4 +70,5 @@ const SoundEffect = forwardRef((props: props, ref) => {
     );
 });
 
+SoundEffect.displayName = 'SoundEffect';
 export default SoundEffect;
