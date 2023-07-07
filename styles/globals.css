@@ -64,10 +64,20 @@ a {
 
 .correct {
   background-color: rgb(10, 226, 10);
+  font-weight: bold;
+  letter-spacing: 0;
+}
+
+.wrong {
+  background-color: rgb(226, 10, 10);
+  font-weight: bold;
+  letter-spacing: 0;
 }
 
 .selected {
   background-color: rgba(113, 175, 113, 0.498);
+  font-weight: bold;
+  letter-spacing: 0;
 }
 
 .finished {
@@ -78,10 +88,6 @@ a {
   text-decoration: underline;
 }
 
-.bold {
-  font-weight: bold;
-  letter-spacing: 0;
-}
 
 .input-center {
   text-align: center;
