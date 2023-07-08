@@ -6,25 +6,24 @@ import { GetServerSideProps } from 'next'
 import GameDisplay from '../components/GameDisplay';
 import socket from '../components/Socket';
 import UserForm from '../components/UserForm';
-import { Typography, FormControl, Box, TextField, Button } from '@mui/material';
+import { Typography, Box, IconButton } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 interface props {
   data: string
 }
 
 interface player {
-  id: string,
   name: string,
   ready: boolean,
-  progress: number,
-  finishedPlace: number
+  progress: string,
 }
 
 const Home: NextPage<props> = (props) => {
 
   const [submittedRoomName, setSubmitedRoomName] = useState('' as string);
   const [players, setPlayers] = useState([] as player[]);
-  const [data, setData] = useState(props.data);
+  const [data, setData] = useState(props.data as string);
   const [savedUsername, setSavedUsername] = useState('' as string);
   const [roomName, setRoomName] = useState('' as string);
   const userFormRef = useRef(null);
@@ -38,6 +37,24 @@ const Home: NextPage<props> = (props) => {
     setRoomName(e.target.value);
   }
 
+  const onLeaveRoom = () => {
+    socket.emit('leaveRoom');
+    setSubmitedRoomName('');
+  }
+
+  socket.on('roomJoined', (roomName: string, players: player[], data: string) => {
+    console.log('roomJoined', roomName, players, data);
+    setSubmitedRoomName(roomName);
+    setPlayers(players);
+    console.log(players.length);
+    setData(data);
+  });
+
+  socket.on('playerUpdated', (players: player[]) => {
+    console.log('playerUpdated', players);
+    setPlayers(players);
+  });
+
 
   return (
     <Box m={2} >
@@ -47,18 +64,16 @@ const Home: NextPage<props> = (props) => {
       </Head>
       {submittedRoomName !== '' ?
         <Box textAlign="right">
-          <Typography variant="h3" textAlign="right">Welcome {savedUsername}</Typography>
           <Typography variant='h3'>{players.length} players in {submittedRoomName} room</Typography>
-
-          {players.map((player: player) => {
-            return (
-              <Typography variant='h4' key={player.id}>{((player.progress / data.split(/\s+/).length) * 100).toFixed(1)}% <span className={player.ready ? 'correct' : ''}>{player.name} {player.finishedPlace > 0 && <span>{player.finishedPlace}</span>}</span></Typography>
-            )
-          })
-          }
+          <Box display="flex" justifyContent="end">
+            <Typography variant="h4" textAlign="right">Welcome {savedUsername}</Typography>
+            <IconButton onClick={onLeaveRoom}>
+              <LogoutIcon />
+            </IconButton>
+          </Box>
         </Box>
         :
-        <UserForm onUsernameChange={handleUsernameChange} onRoomNameChange={handleRoomNameChange} text={data}/>
+        <UserForm onUsernameChange={handleUsernameChange} onRoomNameChange={handleRoomNameChange} text={data} />
       }
 
       <GameDisplay roomName={submittedRoomName} players={players} data={data.split(/\s+/)} />
@@ -68,7 +83,7 @@ const Home: NextPage<props> = (props) => {
 
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(process.env.NEXT_PUBLIC_SOCKET_IO +'/generate');
+  const res = await fetch(process.env.NEXT_PUBLIC_SOCKET_IO + '/generate');
   const data = await res.text();
   return {
     props: {

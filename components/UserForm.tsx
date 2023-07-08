@@ -12,12 +12,15 @@ interface props {
     text: string;
 };
 
-const UserForm = (props: props): JSX.Element =>  {
+interface player {
+    username: string;
+}
+
+const UserForm = (props: props): JSX.Element => {
 
     const [username, setUsername] = useState('' as string);
-    const [savedUsername, setSavedUsername] = useState('' as string);
+    const [savedUsername, setSavedUsername] = useState('' as string|boolean|null);
     const [roomName, setRoomName] = useState('' as string);
-  
 
     useEffect(() => {
         let username = getCookie('username');
@@ -25,14 +28,14 @@ const UserForm = (props: props): JSX.Element =>  {
         if (username === undefined || userID === undefined) {
             return;
         }
+        setSavedUsername(username);
         socket.emit('checkUser', { username: username, userID: userID });
     }, [])
 
     socket.on('userChecked', (valid: boolean, username: string, userID: string) => {
-        console.log(valid, username, userID);
         if (valid) {
-            setCookie('username', username, { maxAge: 60 * 60 * 24 * 7 });
-            setCookie('userID', userID, { maxAge: 60 * 60 * 24 * 7 });
+            //setCookie('username', username, { maxAge: 60 * 60 * 24 * 7 });
+            //setCookie('userID', userID, { maxAge: 60 * 60 * 24 * 7 });
             setSavedUsername(username);
         }
         else {
@@ -48,7 +51,8 @@ const UserForm = (props: props): JSX.Element =>  {
 
     const joinRoom = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
-        //todo
+        console.log('joinRoom', { roomName, savedUsername });
+        socket.emit('joinRoom', { roomName, savedUsername });
     }
 
 
@@ -84,7 +88,7 @@ const UserForm = (props: props): JSX.Element =>  {
                             </FormControl>
                         </Box>
                         <FormControl>
-                            <Button disabled type='submit' variant='outlined' size='small' >[TODO]Join room</Button>
+                            <Button type='submit' variant='outlined' size='small' >Join room</Button>
                         </FormControl>
                     </form>
                 </Box>

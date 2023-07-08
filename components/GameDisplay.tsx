@@ -3,6 +3,7 @@ import socket from '../components/Socket';
 import { Typography, FormControl, Box, TextField, Button } from '@mui/material';
 import { Howl, Howler } from 'howler';
 import KeyboardSound from '../components/KeyboardSound';
+import { clear } from 'console';
 
 interface props {
     data: string[];
@@ -11,17 +12,19 @@ interface props {
 }
 
 interface player {
-    id: string,
     name: string,
     ready: boolean,
-    progress: number
+    progress: string,
 }
 
 const GameDisplay = (props: props): JSX.Element => {
 
     const [WPM, setWPM] = useState(0 as number);
     const [timer, setTimer] = useState(0.01 as number);
+    const [intervalId ,setIntervalId] = useState(null as NodeJS.Timeout | null);
+    const [players, setPlayers] = useState(props.players as player[]);
     const [generatedWords, setGeneratedWords] = useState(props.data as string[]);
+    const [roomName, setRoomName] = useState(props.roomName as string);
     const [indexOfGeneratedWords, setIndexOfGeneratedWords] = useState(0 as number);
     const [multiplayerReady, setMultiplayerReady] = useState(false as boolean);
     const [indexOfWord, setIndexOfWord] = useState(0 as number);
@@ -34,6 +37,19 @@ const GameDisplay = (props: props): JSX.Element => {
     const updateProgress = (): void => {
         socket.emit('playerProgress', { progress: indexOfGeneratedWords, roomName: props.roomName });
     }
+
+    useEffect(() => {
+        setGeneratedWords(props.data);
+        onReset();
+    }, [props.data]);
+
+    useEffect(() => {
+        setRoomName(props.roomName);
+    }, [props.roomName]);
+
+    useEffect(() => {
+        setPlayers(props.players);
+    }, [props.players]);
 
     useEffect(() => {
         if (props.players.length > 0) {
@@ -55,13 +71,14 @@ const GameDisplay = (props: props): JSX.Element => {
     }, [props.players]);
 
     useEffect(() => {
+        console.log(multiplayerReady, props.players.length)
         if (multiplayerReady && props.players.length > 0) {
             setIsGameStarted(true);
         }
         if (isGameStarted) {                
             setWPM(parseInt(((indexOfGeneratedWords / timer) * 60).toFixed(0)));
         }
-    }, [multiplayerReady, isGameStarted, timer, isGameStarted]);
+    }, [multiplayerReady, isGameStarted, timer]);
 
     useEffect(() => {
         if (props.players.length > 0) {
@@ -71,11 +88,14 @@ const GameDisplay = (props: props): JSX.Element => {
 
 
     const startGame = async () => {
+        console.log(isGameStarted, isGameFinished, props.players)
         if (!isGameStarted && !isGameFinished && props.players.length > 0) {
-            socket.emit('playerReady', { roomName: props.roomName });
+            socket.emit('ready');
         }
         else if (!isGameStarted && !isGameFinished) {
             setIsGameStarted(true);
+            setIsGameFinished(false);
+            setWPM(0);
         }
         if (isGameFinished) {
             if (props.players.length > 0) {
@@ -89,22 +109,19 @@ const GameDisplay = (props: props): JSX.Element => {
         const res = await fetch(process.env.NEXT_PUBLIC_SOCKET_IO +'/generate');
         const d = await res.text();
         setGeneratedWords(d.split(/\s+/));
-        setIsGameStarted(false);
-        setIsGameFinished(false);
-        setInputValue('');
+        onReset();
     }
 
     useEffect(() => {
-        let intervalId: NodeJS.Timeout | undefined = undefined;
-
         const startTimer = () => {
-            intervalId = setInterval(() => {
+            setIntervalId(setInterval(() => {
                 setTimer(prevTimer => prevTimer + 0.1);
-            }, 100);
+            }, 100));
         };
 
         const stopTimer = () => {
-            clearInterval(intervalId);
+            clearInterval(intervalId as NodeJS.Timeout);
+            setIntervalId(null);
         };
 
         if (isGameStarted && !isGameFinished) {
@@ -112,6 +129,10 @@ const GameDisplay = (props: props): JSX.Element => {
             inputRef.current?.focus();
         } else if (isGameStarted && isGameFinished) {
             stopTimer();
+        }
+        else if (!isGameStarted) {
+            stopTimer();
+            setTimer(0.01);   
         }
 
         return () => {
@@ -124,6 +145,7 @@ const GameDisplay = (props: props): JSX.Element => {
         let input = e.target.value;
         if (indexOfGeneratedWords === generatedWords.length - 1 && input === generatedWords[indexOfGeneratedWords]) {
             setIsGameFinished(true);
+            onPlayerProgress();
         }
         else if (input[input.length - 1] === ' ' && input.length > 0) {
             input = input.trim();
@@ -131,9 +153,10 @@ const GameDisplay = (props: props): JSX.Element => {
                 setIndexOfGeneratedWords(indexOfGeneratedWords + 1);
                 input = '';
                 setIndexOfWord(0);
+                onPlayerProgress();
             }
         }
-        else if (input.length > 0) {
+        else if (input.length > 0 && indexOfGeneratedWords < generatedWords.length) {
             if (input === generatedWords[indexOfGeneratedWords].slice(0, input.length)) {
                 setIndexOfWord(input.length);
             }
@@ -145,14 +168,34 @@ const GameDisplay = (props: props): JSX.Element => {
 
     const getWordLetterClassName = (arrayIndex: number, wordIndex: number): string => {
         if (inputValue[wordIndex] === generatedWords[arrayIndex][wordIndex] && arrayIndex == indexOfGeneratedWords)
-            return 'correct';
+            return 'correct letter-spacing';
         else if (inputValue[wordIndex] !== generatedWords[arrayIndex][wordIndex] && arrayIndex == indexOfGeneratedWords) {
-            return 'selected';
+            return 'selected letter-spacing';
         }
         else if (indexOfGeneratedWords > arrayIndex)
-            return 'finished';
+            return 'finished letter-spacing';
         else
-            return '';
+            return 'not-selected letter-spacing';
+    }
+
+    const onPlayerProgress = () => {
+        socket.emit('progress', indexOfGeneratedWords);
+    }
+
+    socket.on('leaveRoom', () => {
+        onReset();
+    });
+
+    const onReset = () => {
+        setWPM(0);
+        clearInterval(intervalId as NodeJS.Timeout);
+        setIntervalId(null);
+        setTimer(0.01);
+        setInputValue('');
+        setIsGameFinished(false);
+        setIsGameStarted(false);
+        setIndexOfGeneratedWords(0);
+        setIndexOfWord(0);
     }
 
     return (
