@@ -22,7 +22,6 @@ const UserForm = (props: props): JSX.Element =>  {
     useEffect(() => {
         let username = getCookie('username');
         let userID = getCookie('userID');
-        console.log(username, userID);
         if (username === undefined || userID === undefined) {
             return;
         }
@@ -52,9 +51,6 @@ const UserForm = (props: props): JSX.Element =>  {
         //todo
     }
 
-    socket.on('error', (error: string) => {
-        console.log(error);
-    })
 
     useEffect(() => {
         props.onUsernameChange({ target: { value: savedUsername } } as React.ChangeEvent<HTMLInputElement>);

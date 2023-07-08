@@ -39,16 +39,6 @@ const Home: NextPage<props> = (props) => {
   }
 
 
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
-
-
-  useEffect(() => {
-    console.log(savedUsername);
-    console.log(roomName);
-  }, [savedUsername, roomName]);
-
   return (
     <Box m={2} >
       <Head>
