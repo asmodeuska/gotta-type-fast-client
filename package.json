@@ -13,6 +13,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.13.7",
     "@mui/material": "^5.13.7",
+    "cookies-next": "^2.1.2",
     "howler": "^2.2.3",
     "next": "12.2.3",
     "react": "18.2.0",

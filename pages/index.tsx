@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 import { GetServerSideProps } from 'next'
 import GameDisplay from '../components/GameDisplay';
 import socket from '../components/Socket';
-
+import UserForm from '../components/UserForm';
 import { Typography, FormControl, Box, TextField, Button } from '@mui/material';
 
 interface props {
@@ -22,44 +22,32 @@ interface player {
 
 const Home: NextPage<props> = (props) => {
 
-  const [playerName, setPlayerName] = useState('' as string);
   const [submittedRoomName, setSubmitedRoomName] = useState('' as string);
-  const [roomName, setRoomName] = useState('' as string);
   const [players, setPlayers] = useState([] as player[]);
   const [data, setData] = useState(props.data);
+  const [savedUsername, setSavedUsername] = useState('' as string);
+  const [roomName, setRoomName] = useState('' as string);
+  const userFormRef = useRef(null);
 
 
-  const joinRoom = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    socket.emit('joinRoom', { userName: playerName, roomName: roomName, text: data });
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSavedUsername(e.target.value);
   }
 
-  socket.on('joinRoom', (text: string, players: player[]) => {
-    setPlayers(players);
-    setSubmitedRoomName(roomName);
-    setData(text);
-  })
+  const handleRoomNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRoomName(e.target.value);
+  }
 
-  socket.on('leaveRoom', () => {
-    setPlayers([]);
-    setSubmitedRoomName('');
-  });
 
-  socket.on('error', (error: string) => {
-    console.log(error);
-  })
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
 
-  socket.on('playerReady', (players: player[]) => {
-    setPlayers(players);
-  })
 
-  socket.on('playerProgress', (players: player[]) => {
-    setPlayers(players);
-  })
-
-  socket.on('gameFinished', (players: player[]) => {
-    setPlayers(players);
-  })
+  useEffect(() => {
+    console.log(savedUsername);
+    console.log(roomName);
+  }, [savedUsername, roomName]);
 
   return (
     <Box m={2} >
@@ -69,7 +57,7 @@ const Home: NextPage<props> = (props) => {
       </Head>
       {submittedRoomName !== '' ?
         <Box textAlign="right">
-          <Typography variant="h3" textAlign="right">Welcome {playerName}</Typography>
+          <Typography variant="h3" textAlign="right">Welcome {savedUsername}</Typography>
           <Typography variant='h3'>{players.length} players in {submittedRoomName} room</Typography>
 
           {players.map((player: player) => {
@@ -80,24 +68,7 @@ const Home: NextPage<props> = (props) => {
           }
         </Box>
         :
-        <Box mb={2} sx={{ width: '100%' }}>
-          <Typography textAlign={'right'} variant="h4">Gotta Type Fast [WIP]</Typography>
-          <form style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }} onSubmit={joinRoom}>
-            <Box mx={1}>
-              <FormControl required>
-                <TextField required variant='standard' label="Username" value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
-              </FormControl>
-            </Box>
-            <Box mx={1}>
-              <FormControl required>
-                <TextField required variant='standard' label="Room name" value={roomName} onChange={(e) => setRoomName(e.target.value)} />
-              </FormControl>
-            </Box>
-            <FormControl>
-              <Button type='submit' variant='outlined' size='small' >Join room</Button>
-            </FormControl>
-          </form>
-        </Box>
+        <UserForm onUsernameChange={handleUsernameChange} onRoomNameChange={handleRoomNameChange} text={data}/>
       }
 
       <GameDisplay roomName={submittedRoomName} players={players} data={data.split(/\s+/)} />

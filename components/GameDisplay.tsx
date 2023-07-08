@@ -186,8 +186,8 @@ const GameDisplay = (props: props): JSX.Element => {
             <input ref={inputRef} disabled={!isGameStarted} autoComplete='off' className='input-center' type="text" id="input" value={inputValue} onChange={onInput} />
             <Box my={1} textAlign={'center'}>
                 <Box mb={0.5} display="flex" justifyContent="center">
-                    <Button variant='contained' color='info' onClick={startGame}>Start</Button> &nbsp;
-                    {props.players.length == 0 && <Button variant='outlined' color='warning' onClick={generateNewText}>Generate new text</Button>}
+                    <Button variant='contained' color='success' onClick={startGame}>Start</Button> &nbsp;
+                    {props.players.length == 0 && <Button variant='outlined' color='info' onClick={generateNewText}>Generate new text</Button>}
                     <KeyboardSound wpm={WPM} ref={keybodardSoundRef} />
 
                 </Box>
